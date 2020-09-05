@@ -6,8 +6,43 @@ metadata:
   region: sa-east-1
 
 nodeGroups:
-  - name: ng-1
-    instanceType: t2.small
-    desiredCapacity: 3
-    ssh: # use existing EC2 key
-      publicKeyName: aws  
+  - name: ng-spot-autoscaler
+    minSize: 1
+    maxSize: 3
+    maxPodsPerNode: 110
+    instancesDistribution:
+      maxPrice: 0.2
+      instanceTypes: ["t2.small", "t3.small"]
+      onDemandBaseCapacity: 0
+      onDemandPercentageAboveBaseCapacity: 50
+    ami: auto
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+      withAddonPolicies:
+        autoScaler: true
+    privateNetworking: true
+    availabilityZones: ["sa-east-1a"]
+    ssh:
+      publicKeyName: aws-home
+
+managedNodeGroups:
+  - name: managed-ng-spot-autoscaler
+    minSize: 1
+    maxSize: 3
+    maxPodsPerNode: 110
+    instanceType: "t2.small"
+    iam:
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+      withAddonPolicies:
+        autoScaler: true
+    privateNetworking: true
+    availabilityZones: ["sa-east-1a"]
+    ssh:
+      publicKeyName: aws-home
